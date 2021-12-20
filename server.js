@@ -26,9 +26,13 @@ app.use(body_parser.json());
 //serving public file
 app.use(express.static(__dirname));
 app.use(cookieParser());
-
-app.post("/signup",(req,res)=>{
+app.get("/signup",(req,res)=>{
     res.sendFile('views/signup.html',{root:__dirname})
+})
+app.get("/login",(req,res)=>{
+    res.sendFile('views/login.html',{root:__dirname})
+})
+app.post("/signup",(req,res)=>{
     const obj = new userModel(
         {
             username:req.body.username,
@@ -39,8 +43,6 @@ app.post("/signup",(req,res)=>{
     res.redirect('views/login.html')
 })
 app.post("/login",(req,res) => {
-    res.sendFile('views/login.html',{root:__dirname})
-
     if(req.body.email === "" || req.body.password ===""){
        return res.status(206).send({
         success:false,
