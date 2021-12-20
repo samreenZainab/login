@@ -36,6 +36,7 @@ app.post("/signup",(req,res)=>{
             password:req.body.password
         }) 
     obj.save() 
+    res.redirect('views/login.html')
 })
 app.post("/login",(req,res) => {
     res.sendFile('views/login.html',{root:__dirname})
@@ -61,14 +62,17 @@ app.post("/login",(req,res) => {
             message: "incorrect password"})
     }
     session=req.session;
-    if(session.userid){
+    if(session.userid=req.body.username){
         res.send("Welcome User <a href=\'/logout'>click to logout</a>")
     }else{
         res.redirect("/login.html")
     }
 })
 
-
+app.get('/logout',(req,res) => {
+    req.session.destroy();
+    res.redirect('/login');
+});
 
 app.listen(PORT, function() {
     console.log("app is running on port " + PORT);
