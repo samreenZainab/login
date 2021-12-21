@@ -26,55 +26,51 @@ app.use(body_parser.json());
 //serving public file
 app.use(express.static(__dirname));
 app.use(cookieParser());
+
 app.get("/signup",(req,res)=>{
     res.sendFile('views/signup.html',{root:__dirname})
 })
 app.get("/login",(req,res)=>{
     res.sendFile('views/login.html',{root:__dirname})
 })
-app.post("/signup",(req,res)=>{
+app.get("/home",async(req,res)=>{
+    session=req.session
+    if(session.userid)
+    return  res.send("Welcome User <a href=\'/logout'>click to logout</a>");
+    })
+
+app.get('/logout',(req,res) => {
+    req.session.destroy();
+    res.redirect('/login');
+});
+
+app.post("/signup",async(req,res)=>{
     const obj = new userModel(
         {
             username:req.body.username,
             email:req.body.email,
             password:req.body.password
         }) 
-    obj.save() 
+     await obj.save() 
     res.redirect('views/login.html')
 })
-app.post("/login",(req,res) => {
-    if(req.body.email === "" || req.body.password ===""){
-       return res.status(206).send({
-        success:false,
-        message: "please enter username and password"
-       }) 
-    }
-    var email = userModel.findOne({email:req.body.email}).select('email')
-    if(email === null)
-    {
-    res.redirect("/signup").status(400).send({
-            success:false,
-            message: "user not registered"})
-    }
-    var password = userModel.findOne({email:req.body.password}).select('password')
-    if(password === null)
-    {
-    res.redirect("/signup").status(400).send({
-            success:false,
-            message: "incorrect password"})
-    }
-    session=req.session;
-    if(session.userid=req.body.username){
-        res.send("Welcome User <a href=\'/logout'>click to logout</a>")
-    }else{
-        res.redirect("/login.html")
-    }
-})
 
-app.get('/logout',(req,res) => {
-    req.session.destroy();
-    res.redirect('/login');
-});
+app.post("/login",async(req,res) => {
+            const user = await userModel.find({ name:req.body.username, password:req.body.password }).exec();
+            if (!user) {
+            return res.redirect('/login') } 
+            if(user)
+            {
+                session=req.session
+                session.userid=req.body.username
+                res.cookie("value",user)
+               return res.redirect("/home")
+            } 
+            else {
+                console.log("3st")
+                res.redirect("/login")
+            }
+})
 
 app.listen(PORT, function() {
     console.log("app is running on port " + PORT);
